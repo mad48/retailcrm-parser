@@ -1,0 +1,29 @@
+body, html {
+    font-family: Verdana, Tahoma;
+    font-size: 13px
+}
+
+table {
+    border: 1px solid grey;
+    border-collapse: collapse;
+    margin: 0 0 20px 0
+}
+
+table tr th {
+    border: 1px solid grey;
+    padding: 5px;
+    color: grey;
+    font-style: italic
+}
+
+table tr td {
+    border: 1px solid grey;
+    padding: 5px
+}
+
+table .error{background: red}
+
+.tooltip-inner {
+    background-color: #1679d6;
+    color: #fff;
+}

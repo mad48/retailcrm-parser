@@ -1,0 +1,41 @@
+{
+  "name": "retailcrm/xls-parser",
+  "description": "XLS parser for retailCRM",
+  "type": "library",
+  "keywords": [
+    "API",
+    "retailCRM",
+    "REST"
+  ],
+  "homepage": "http://www.retailcrm.pro/",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Mad Max",
+      "email": "programmist48@yandex.ru",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "email": "integration@retailcrm.ru"
+  },
+  "require": {
+    "php": ">=5.4.0",
+    "ext-curl": "*",
+    "phpunit/phpunit": "5.*",
+    "retailcrm/api-client-php": "~4.0.0",
+    "phpoffice/phpexcel": "*",
+    "twbs/bootstrap": "^3.3",
+    "kartik-v/bootstrap-fileinput": "^4.3"
+  },
+  "autoload": {
+    "psr-0": {
+      "RetailCrm\\": "lib/",
+      "": "src/"
+    }
+  },
+  "config": {
+    "bin-dir": "bin",
+    "process-timeout": 600
+  }
+}
