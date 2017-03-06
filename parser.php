@@ -13,7 +13,7 @@ require 'src/parser/parser_form.php';
 require 'src/parser/parser_table.php';
 
 
-define("DEBUG", true);
+define("DEBUG", false);
 
 // идентификатор настроек подключения.  см. config.php
 $crm = "retailcrm2";
@@ -28,7 +28,6 @@ if (!empty($con_err = checkConnection($client))) {
     msg("Проверьте настройки подключения в файле config.php. " . $con_err, "h4", "alert alert-danger");
     die();
 }
-
 
 
 logger("");
