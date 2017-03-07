@@ -16,8 +16,13 @@ function echo_table($data, $error)
         <tbody>';
 
     foreach ($data as $order) {
-        echo '<tr>
-                <td>' . $order['number'] . '</td>';
+        echo '<tr>';
+				
+        echo '<td class="';
+        echo($error[$order["number"]]["number"] ? " alert-danger" : $error[$order["number"]]["number"]);
+        echo '"><span  data-toggle="tooltip"  title="' . $error[$order["number"]]["number"] . '">' . $order['number'] .
+            '</span></td>';
+			
         echo '<td class="';
         echo($error[$order["number"]]["status"] ? " alert-danger" : $error[$order["number"]]["status"]);
         echo '"><span  data-toggle="tooltip"  title="' . $error[$order["number"]]["status"] . '">' . $order['status'] .

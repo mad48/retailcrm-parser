@@ -33,4 +33,5 @@
     <button type="button" class="btn btn-primary" onclick="window.location.href='<? echo $_SERVER['PHP_SELF'] ?>'">
         Назад
     </button>
+	<br><br>
 <? } ?>

@@ -1,10 +1,10 @@
 <?php
 
-return [
-    'retailcrm2' => [
+$config = [
+    'retailcrm' => [
         // retailCRM URL
-        'url' => 'https://retailcrm.retailcrm.ru',
+        'url' => 'https://xxxxxxxxxx.retailcrm.ru',
         // ключ доступа к api
-        'key' => 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        'key' => 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     ]
 ];

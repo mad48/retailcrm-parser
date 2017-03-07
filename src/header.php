@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link href="/css/favicon.ico" rel="icon" type="image/x-icon"/>
-    <title>retailCRM Scripts</title>
+    <title><?=basename($_SERVER['SCRIPT_NAME'], ".php")?> - retailCRM</title>
 
     <!--<script type='text/javascript' src='http://code.jquery.com/jquery-3.1.1.js'></script>-->
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>

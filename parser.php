@@ -4,7 +4,6 @@
  */
 
 require 'vendor/autoload.php';
-require 'config.php';
 
 require 'src/functions.php';
 require 'src/header.php';
@@ -16,19 +15,14 @@ require 'src/parser/parser_table.php';
 define("DEBUG", false);
 
 // идентификатор настроек подключения.  см. config.php
-$crm = "retailcrm2";
-$config = file_exists('config-dev.php') ? require_once 'config-dev.php' : require_once 'config.php';
+$crm = "retailcrm";
+if(file_exists('config-dev.php'))  require_once 'config-dev.php';
+else require_once 'config.php';
 
 $client = new \RetailCrm\ApiClient(
     $config[$crm]['url'],
     $config[$crm]['key']
 );
-
-if (!empty($con_err = checkConnection($client))) {
-    msg("Проверьте настройки подключения в файле config.php. " . $con_err, "h4", "alert alert-danger");
-    die();
-}
-
 
 logger("");
 logger("Вызов скрипта parser");
@@ -56,10 +50,10 @@ function getExcelFile()
     }
 
     if (move_uploaded_file($_FILES['excel']['tmp_name'], $uploadfile)) {
-        msg("Файл корректен и был успешно загружен", "h4", "alert alert-info");
+        msg("Файл был успешно загружен", "div", "alert alert-info");
 
     } else {
-        msg("Проблемы с сохранением файла!", "h4", "alert alert-danger");
+        msg("Проблемы с сохранением файла!", "div", "alert alert-danger");
         return false;
     }
 
@@ -69,7 +63,7 @@ function getExcelFile()
 
 $excelfile = getExcelFile();
 
-if (DEBUG) $excelfile = __DIR__ . '/uploads/order-01-03-17.10-01_5c1c36.xls';
+if (DEBUG) $excelfile = __DIR__ . '/uploads/example.xls';
 
 if (isset($_FILES) && !$excelfile) {
     exit();//"Нет файла для обработки"
@@ -136,6 +130,12 @@ $error = [];
 // проверка содержимого файла на ошибки
 foreach ($data as $oder) {
 
+    // проверка существования заказа
+    $orderlist = $client->ordersList(['numbers' => [$oder['number']]]);
+    if(empty($orderlist['orders'])){
+			$error[$oder['number']]['number'] = "Заказ " . $oder['number'] . " не существует в CRM";
+	}
+ 		
     // проверка допустимых статусов заказа
     if (!array_key_exists($oder['status'], $statuses)) {
         $error[$oder['number']]['status'] = "Заказ " . $oder['number'] . ". Ошибка в имени статуса заказа. Статус <b>" . $oder['status'] . "</b> в CRM отсутствует";
@@ -172,8 +172,8 @@ foreach ($data as $oder) {
 
         $date_arr = explode(".", $date);
         if (!empty($date) && !checkdate((int)$date_arr[1], (int)$date_arr[0], (int)$date_arr[2])) {
-            $error['number']['dataoplat'] = "Заказ " . $oder['number'] . ". Ошибка в поле \"Дата оплаты\". <b>" . $oder['dataoplat'] . "</b> Недопустимая дата";
-            //msg($error['number']['dataoplat'], "div");
+            $error[$oder['number']]['dataoplat'] = "Заказ " . $oder['number'] . ". Ошибка в поле \"Дата оплаты\". <b>" . $oder['dataoplat'] . "</b> Недопустимая дата";
+            //msg($error[$oder['number']]['dataoplat'], "div");
         }
 
     }
@@ -184,8 +184,8 @@ foreach ($data as $oder) {
 echo_table($data, $error);
 
 if (!empty($error)) {
-    msg("Импорт файла невозможен из-за наличия в нем ошибок.", "h4", "alert alert-warning");
-    logger("Импорт файла невозможен из-за наличия в нем ошибок." . print_r($error, true));
+    msg("Импорт файла невозможен из-за наличия в нем ошибок", "h4", "alert alert-warning");
+    logger("Импорт файла невозможен из-за наличия в нем ошибок" . print_r($error, true));
     die();
 }
 
@@ -198,7 +198,13 @@ if (empty($error)) {
     foreach ($data as $oder) {
 
         $orderlist = $client->ordersList(['numbers' => [$oder['number']]]);
-        $oder['id'] = $orderlist['orders'][0]['id'];
+		if(empty($orderlist['orders'])){
+			msg("Заказ " . $oder['number'] . " не существует в CRM. Импорт заказа пропущен", "div", "alert alert-warning");
+			continue;
+		}
+		else{
+			$oder['id'] = $orderlist['orders'][0]['id'];
+		}
 
         if (DEBUG) {
             echo '<pre><br>$orderedit = $client->ordersEdit(';
@@ -209,13 +215,12 @@ if (empty($error)) {
             echo '<br>&nbsp;&nbsp;"paymentType" => ' . $paymentTypes[$oder['paymentType']] . ',';
             echo '<br>&nbsp;&nbsp;"customFields" => [';
             echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;"oplacheno" => ' . $oder['oplacheno'] . ',';
-            echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;"dataoplat" => ' . ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : "");
+            echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;"dataoplat" => ' . ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : "null");
             echo '<br>&nbsp;&nbsp;]';
             echo '<br>], id);';
             echo '<br></pre>';
         }
 
-        if ($oder['dataoplat'] != "") {
             $orderedit = $client->ordersEdit(
                 [
                     'id' => $oder['id'],
@@ -224,23 +229,10 @@ if (empty($error)) {
                     "paymentType" => $paymentTypes[$oder['paymentType']],
                     "customFields" => [
                         "oplacheno" => $oder['oplacheno'],
-                        "dataoplat" => ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : "")
+                        "dataoplat" => ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : null)
                     ]
                 ], 'id');
 
-        } else {
-
-            $orderedit = $client->ordersEdit(
-                [
-                    'id' => $oder['id'],
-                    "status" => $statuses[$oder['status']],
-                    "paymentStatus" => $paymentStatuses[$oder['paymentStatus']],
-                    "paymentType" => $paymentTypes[$oder['paymentType']],
-                    "customFields" => [
-                        "oplacheno" => $oder['oplacheno']
-                    ]
-                ], 'id');
-        }
 
         // pre($orderedit);
 
