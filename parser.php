@@ -1,23 +1,30 @@
 <?php
 /**
- * Парсер Ecxel (скрипт изменения данных в CRM используя файл excel).
+ * Парсер Excel (скрипт изменения данных в CRM используя файл excel).
  */
 
-require 'vendor/autoload.php';
+require_once 'vendor/autoload.php';
 
-require 'src/functions.php';
-require 'src/header.php';
+require_once 'src/functions.php';
+require_once 'src/header.php';
 
-require 'src/parser/parser_form.php';
-require 'src/parser/parser_table.php';
+require_once 'src/parser/parser_form.php';
+require_once 'src/parser/parser_table.php';
 
 
-define("DEBUG", false);
+define("DEBUG", true);
 
 // идентификатор настроек подключения.  см. config.php
 $crm = "retailcrm";
-if(file_exists('config-dev.php'))  require_once 'config-dev.php';
-else require_once 'config.php';
+
+require_once 'config.php';
+require_once 'config-dev.php';
+
+
+if (empty($config[$crm]['key'])) {
+    msg("Укажите ключ API в config.php", "div", "alert alert-danger");
+    die();
+}
 
 $client = new \RetailCrm\ApiClient(
     $config[$crm]['url'],
@@ -31,7 +38,15 @@ function getExcelFile()
 {
     if (!isset($_FILES['excel']['name'])) return false;
 
-    $uploaddir = __DIR__ . '/uploads/';
+    $uploadsdir = 'uploads';
+
+    if (!is_dir($uploadsdir)) {
+        if (!mkdir($uploadsdir, 0777, true)) {
+            die('Не удалось создать директорию ' . $uploadsdir);
+        }
+    }
+
+    $uploaddir = __DIR__ . '/' . $uploadsdir . '/';
 
     $info = pathinfo($_FILES['excel']['name']);
 
@@ -63,7 +78,7 @@ function getExcelFile()
 
 $excelfile = getExcelFile();
 
-if (DEBUG) $excelfile = __DIR__ . '/uploads/example.xls';
+if (DEBUG) $excelfile = __DIR__ . '/example.xls';
 
 if (isset($_FILES) && !$excelfile) {
     exit();//"Нет файла для обработки"
@@ -132,10 +147,10 @@ foreach ($data as $oder) {
 
     // проверка существования заказа
     $orderlist = $client->ordersList(['numbers' => [$oder['number']]]);
-    if(empty($orderlist['orders'])){
-			$error[$oder['number']]['number'] = "Заказ " . $oder['number'] . " не существует в CRM";
-	}
- 		
+    if (empty($orderlist['orders'])) {
+        $error[$oder['number']]['number'] = "Заказ " . $oder['number'] . " не существует в CRM";
+    }
+
     // проверка допустимых статусов заказа
     if (!array_key_exists($oder['status'], $statuses)) {
         $error[$oder['number']]['status'] = "Заказ " . $oder['number'] . ". Ошибка в имени статуса заказа. Статус <b>" . $oder['status'] . "</b> в CRM отсутствует";
@@ -198,13 +213,12 @@ if (empty($error)) {
     foreach ($data as $oder) {
 
         $orderlist = $client->ordersList(['numbers' => [$oder['number']]]);
-		if(empty($orderlist['orders'])){
-			msg("Заказ " . $oder['number'] . " не существует в CRM. Импорт заказа пропущен", "div", "alert alert-warning");
-			continue;
-		}
-		else{
-			$oder['id'] = $orderlist['orders'][0]['id'];
-		}
+        if (empty($orderlist['orders'])) {
+            msg("Заказ " . $oder['number'] . " не существует в CRM. Импорт заказа пропущен", "div", "alert alert-warning");
+            continue;
+        } else {
+            $oder['id'] = $orderlist['orders'][0]['id'];
+        }
 
         if (DEBUG) {
             echo '<pre><br>$orderedit = $client->ordersEdit(';
@@ -221,17 +235,17 @@ if (empty($error)) {
             echo '<br></pre>';
         }
 
-            $orderedit = $client->ordersEdit(
-                [
-                    'id' => $oder['id'],
-                    "status" => $statuses[$oder['status']],
-                    "paymentStatus" => $paymentStatuses[$oder['paymentStatus']],
-                    "paymentType" => $paymentTypes[$oder['paymentType']],
-                    "customFields" => [
-                        "oplacheno" => $oder['oplacheno'],
-                        "dataoplat" => ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : null)
-                    ]
-                ], 'id');
+        $orderedit = $client->ordersEdit(
+            [
+                'id' => $oder['id'],
+                "status" => $statuses[$oder['status']],
+                "paymentStatus" => $paymentStatuses[$oder['paymentStatus']],
+                "paymentType" => $paymentTypes[$oder['paymentType']],
+                "customFields" => [
+                    "oplacheno" => $oder['oplacheno'],
+                    "dataoplat" => ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : null)
+                ]
+            ], 'id');
 
 
         // pre($orderedit);
