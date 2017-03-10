@@ -8,85 +8,35 @@ require_once 'vendor/autoload.php';
 require_once 'src/functions.php';
 require_once 'src/header.php';
 
-require_once 'src/parser/parser_form.php';
-require_once 'src/parser/parser_table.php';
+define("DEBUG", false);
 
-
-define("DEBUG", true);
-
-// идентификатор настроек подключения.  см. config.php
-$crm = "retailcrm";
-
-require_once 'config.php';
-require_once 'config-dev.php';
-
-
-if (empty($config[$crm]['key'])) {
-    msg("Укажите ключ API в config.php", "div", "alert alert-danger");
+$config = getConfig();
+if (!$config) {
+    msg("Ошибка получения настроек из config.php", "div", "alert alert-danger");
     die();
 }
 
 $client = new \RetailCrm\ApiClient(
-    $config[$crm]['url'],
-    $config[$crm]['key']
+    $config['url'],
+    $config['key']
 );
+
+require_once 'src/parser/parser_form.php';
+require_once 'src/parser/parser_table.php';
 
 logger("");
 logger("Вызов скрипта parser");
 
-function getExcelFile()
-{
-    if (!isset($_FILES['excel']['name'])) return false;
-
-    $uploadsdir = 'uploads';
-
-    if (!is_dir($uploadsdir)) {
-        if (!mkdir($uploadsdir, 0777, true)) {
-            die('Не удалось создать директорию ' . $uploadsdir);
-        }
-    }
-
-    $uploaddir = __DIR__ . '/' . $uploadsdir . '/';
-
-    $info = pathinfo($_FILES['excel']['name']);
-
-    if (!in_array(strtolower($info['extension']), ['xls', 'xlsx'])) {
-        msg("Поддерживаемые типы файлов: XLS, XLSX");
-        return false;
-    }
-
-    $filename = basename($_FILES['excel']['name'], '.' . $info['extension']);
-
-
-    $uploadfile = $uploaddir . (new DateTime)->format('Y-m-d-H-m-s') . "_" . basename($_FILES['excel']['name']);
-
-    if (file_exists($uploadfile)) {
-        $uploadfile = $uploaddir . (new DateTime)->format('Y-m-d-H-m-s') . "_" . $filename . "." . $info['extension'];
-    }
-
-    if (move_uploaded_file($_FILES['excel']['tmp_name'], $uploadfile)) {
-        msg("Файл был успешно загружен", "div", "alert alert-info");
-
-    } else {
-        msg("Проблемы с сохранением файла!", "div", "alert alert-danger");
-        return false;
-    }
-
-    return $uploadfile;
-}
-
-
 $excelfile = getExcelFile();
-
-if (DEBUG) $excelfile = __DIR__ . '/example.xls';
-
-if (isset($_FILES) && !$excelfile) {
-    exit();//"Нет файла для обработки"
+if (!$excelfile) {
+    msg("Нет файла для обработки", "div", "alert alert-warning");
+    die();
 } else {
-
+    $excelfilepath = saveExcelFileCopy(__DIR__ . "/uploads/");
+    if (DEBUG) $excelfilepath = __DIR__ . '/example.xls';
 }
 
-logger("Файл: " . $excelfile);
+logger("Файл: " . $excelfilepath);
 
 if (DEBUG) echo '<br>Memory usage before PHPExcel: ', convert(memory_get_usage());
 
@@ -94,12 +44,12 @@ $cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
 $cacheSettings = array('memoryCacheSize' => '512MB');
 PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
 
-$inputFileType = PHPExcel_IOFactory::identify($excelfile);  // узнаем тип файла
+$inputFileType = PHPExcel_IOFactory::identify($excelfilepath);  // узнаем тип файла
 $objReader = PHPExcel_IOFactory::createReader($inputFileType); // создаем объект для чтения файла
 //$objReader->setReadDataOnly(true);
 //$objReader->setReadFilter(new MyReadFilter1());
 
-$objPHPExcel = $objReader->load($excelfile);
+$objPHPExcel = $objReader->load($excelfilepath);
 
 if (DEBUG) echo '<br>Memory usage after loading xls: ', convert(memory_get_usage());
 
@@ -213,11 +163,13 @@ if (empty($error)) {
     foreach ($data as $oder) {
 
         $orderlist = $client->ordersList(['numbers' => [$oder['number']]]);
+
         if (empty($orderlist['orders'])) {
             msg("Заказ " . $oder['number'] . " не существует в CRM. Импорт заказа пропущен", "div", "alert alert-warning");
             continue;
         } else {
             $oder['id'] = $orderlist['orders'][0]['id'];
+            $oder['totalSumm'] = $orderlist['orders'][0]['totalSumm'];
         }
 
         if (DEBUG) {
@@ -225,10 +177,9 @@ if (empty($error)) {
             echo ' <br>[';
             echo '<br>&nbsp;&nbsp;"id" => ' . $oder['id'] . ',';
             echo '<br>&nbsp;&nbsp;"status" => ' . $statuses[$oder['status']] . ',';
-            echo '<br>&nbsp;&nbsp;"paymentStatus => ' . $paymentStatuses[$oder['paymentStatus']] . ',';
+            echo '<br>&nbsp;&nbsp;"paymentStatus => ' . ($oder['oplacheno'] == $oder['totalSumm'] ? 'paid' : $paymentStatuses[$oder['paymentStatus']]) . ',';
             echo '<br>&nbsp;&nbsp;"paymentType" => ' . $paymentTypes[$oder['paymentType']] . ',';
             echo '<br>&nbsp;&nbsp;"customFields" => [';
-            echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;"oplacheno" => ' . $oder['oplacheno'] . ',';
             echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;"dataoplat" => ' . ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : "null");
             echo '<br>&nbsp;&nbsp;]';
             echo '<br>], id);';
@@ -239,10 +190,9 @@ if (empty($error)) {
             [
                 'id' => $oder['id'],
                 "status" => $statuses[$oder['status']],
-                "paymentStatus" => $paymentStatuses[$oder['paymentStatus']],
+                "paymentStatus" => ($oder['oplacheno'] == $oder['totalSumm'] ? 'paid' : $paymentStatuses[$oder['paymentStatus']]), //Если сумма в xls файле совпадает с суммой заказа, то выставлять статус оплаты "Оплачен".
                 "paymentType" => $paymentTypes[$oder['paymentType']],
                 "customFields" => [
-                    "oplacheno" => $oder['oplacheno'],
                     "dataoplat" => ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : null)
                 ]
             ], 'id');

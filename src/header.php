@@ -22,8 +22,6 @@ header('Content-Type: text/html; charset=utf-8');
     <script src="vendor/twbs/bootstrap/dist/js/bootstrap.min.js"></script>
 
     <link rel="stylesheet" href="css/style.css" type="text/css"/>
-
-
 </head>
 <body>
 

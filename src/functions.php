@@ -13,11 +13,11 @@ function pre($param)
 }
 
 // оформление заголовков сообщений
-function msg($mess, $tag = null, $style= null)
+function msg($mess, $tag = null, $style = null)
 {
     $tag = is_null($tag) ? "h4" : $tag;
-    if(strpos($style, ":")) echo "<".$tag." ". ($style? "style=\"".$style:"")."\"".">$mess</$tag>";
-    else echo "<".$tag." ". ($style? "class=\"".$style:"")."\"".">$mess</$tag>";
+    if (strpos($style, ":")) echo "<" . $tag . " " . ($style ? "style=\"" . $style : "") . "\"" . ">$mess</$tag>";
+    else echo "<" . $tag . " " . ($style ? "class=\"" . $style : "") . "\"" . ">$mess</$tag>";
 }
 
 
@@ -52,15 +52,14 @@ function logger($message)
 {
     $fd = fopen(basename($_SERVER['SCRIPT_NAME'], ".php") . ".log", 'a') or die("не удалось создать лог-файл");
 
-    if(!empty($message)){
+    if (!empty($message)) {
         fputs($fd, date("Y-m-d H:i:s") . ";" . $message . "\r\n");
-    }else{
+    } else {
         fputs($fd, "\r\n");
     }
 
     fclose($fd);
 }
-
 
 
 // получение списка допустимых статусов заказа
@@ -119,4 +118,130 @@ function convert($size)
 {
     $unit = array('b', 'kb', 'mb', 'gb', 'tb', 'pb');
     return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
+}
+
+function getConfig($confname = 'retailcrm')
+{
+    //$confname -  идентификатор настроек подключения.  см. config.php
+
+    if (!file_exists('config.php')) {
+        $fd = fopen("config.php", 'w') or die("не удалось создать файл");
+        $conf = "<?php
+    return  [
+        'retailcrm' => [
+        
+            // retailCRM URL (example: https://mysite.retailcrm.ru)
+            'url' => '',
+        
+            // ключ доступа к api (example: OKCPewvhjjllNVjY0gW1dQkodjjyBq7BL) 
+            'key' => ''
+        ]
+    ];";
+
+        fwrite($fd, $conf);
+        fclose($fd);
+        msg("Создан config.php. Укажите URL и ключ API в config.php", "div", "alert alert-danger");
+        die();
+    }
+
+    if (file_exists('config.php')) {
+        $config = require 'config.php';
+
+        if (empty($config[$confname]['key'])) {
+            msg("Укажите ключ API в config.php", "div", "alert alert-danger");
+            die();
+        }
+
+        return $config[$confname];
+    }
+    return false;
+}
+
+
+function getExcelFile()
+{
+    if (!isset($_FILES['excel'])) return false;
+    else return $_FILES['excel'];
+}
+
+
+function saveExcelFileCopy($uploadsdir)
+{
+   // $uploadsdir = 'uploads';
+
+    if (!is_dir($uploadsdir)) {
+        if (!mkdir($uploadsdir, 0777, true)) {
+            die('Не удалось создать директорию ' . $uploadsdir);
+        }
+    }
+
+    $uploaddir = $uploadsdir;//__DIR__ . '/../' . $uploadsdir . '/';
+
+    $info = pathinfo($_FILES['excel']['name']);
+
+    if (!in_array(strtolower($info['extension']), ['xls', 'xlsx'])) {
+        msg("Поддерживаемые типы файлов: XLS, XLSX");
+        return false;
+    }
+
+    $filename = basename($_FILES['excel']['name'], '.' . $info['extension']);
+
+
+    $uploadfile = $uploaddir . (new DateTime)->format('Y-m-d-H-m-s') . "_" . basename($_FILES['excel']['name']);
+
+    if (file_exists($uploadfile)) {
+        $uploadfile = $uploaddir . (new DateTime)->format('Y-m-d-H-m-s') . "_" . $filename . "." . $info['extension'];
+    }
+
+    if (move_uploaded_file($_FILES['excel']['tmp_name'], $uploadfile)) {
+        msg("Файл был успешно загружен", "div", "alert alert-info");
+
+    } else {
+        msg("Проблемы с сохранением файла!", "div", "alert alert-danger");
+        return false;
+        die();
+    }
+
+    return $uploadfile;
+}
+
+function saveExcelFile($path)
+{
+    //if (!isset($_FILES['excel']['name'])) return false;
+
+    $uploadsdir = 'uploads';
+
+    if (!is_dir($uploadsdir)) {
+        if (!mkdir($uploadsdir, 0777, true)) {
+            die('Не удалось создать директорию ' . $uploadsdir);
+        }
+    }
+
+    $uploaddir = __DIR__ . '/../' . $uploadsdir . '/';
+
+    $info = pathinfo($_FILES['excel']['name']);
+
+    if (!in_array(strtolower($info['extension']), ['xls', 'xlsx'])) {
+        msg("Поддерживаемые типы файлов: XLS, XLSX");
+        return false;
+    }
+
+    $filename = basename($_FILES['excel']['name'], '.' . $info['extension']);
+
+
+    $uploadfile = $uploaddir . (new DateTime)->format('Y-m-d-H-m-s') . "_" . basename($_FILES['excel']['name']);
+
+    if (file_exists($uploadfile)) {
+        $uploadfile = $uploaddir . (new DateTime)->format('Y-m-d-H-m-s') . "_" . $filename . "." . $info['extension'];
+    }
+
+    if (move_uploaded_file($_FILES['excel']['tmp_name'], $uploadfile)) {
+        msg("Файл был успешно загружен", "div", "alert alert-info");
+
+    } else {
+        msg("Проблемы с сохранением файла!", "div", "alert alert-danger");
+        return false;
+    }
+
+    return $uploadfile;
 }
