@@ -27,3 +27,12 @@ table .error{background: red}
     background-color: #1679d6;
     color: #fff;
 }
+
+.form form {
+    width:300px;
+    height:300px;
+    position:absolute;
+    left:50%;
+    top:50%;
+    margin:-150px 0 0 -150px;
+}

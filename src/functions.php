@@ -129,7 +129,13 @@ function getConfig($confname = 'retailcrm')
         $conf = "<?php
     return  [
         'retailcrm' => [
-        
+            
+            // логин для доступа к парсеру
+            'login' => '',
+              
+            // логин для доступа к парсеру
+            'password' => '',
+            
             // retailCRM URL (example: https://mysite.retailcrm.ru)
             'url' => '',
         

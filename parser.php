@@ -1,4 +1,7 @@
 <?php
+session_start();
+if (!isset($_SESSION['auth'])) header("location: index.php");
+
 /**
  * Парсер Excel (скрипт изменения данных в CRM используя файл excel).
  */
@@ -27,14 +30,20 @@ require_once 'src/parser/parser_table.php';
 logger("");
 logger("Вызов скрипта parser");
 
-$excelfile = getExcelFile();
-if (!$excelfile) {
-    msg("Нет файла для обработки", "div", "alert alert-warning");
-    die();
-} else {
-    $excelfilepath = saveExcelFileCopy(__DIR__ . "/uploads/");
+$excelfilepath = "";
+
+if (DEBUG) {
     if (DEBUG) $excelfilepath = __DIR__ . '/example.xls';
+} else {
+    $excelfile = getExcelFile();
+    if (!$excelfile) {
+        msg("Не выбран файл для обработки", "div", "alert alert-warning");
+        die();
+    } else {
+        $excelfilepath = saveExcelFileCopy(__DIR__ . "/uploads/");
+    }
 }
+
 
 logger("Файл: " . $excelfilepath);
 
@@ -163,13 +172,14 @@ if (empty($error)) {
     foreach ($data as $oder) {
 
         $orderlist = $client->ordersList(['numbers' => [$oder['number']]]);
-
+        pre($orderlist);
         if (empty($orderlist['orders'])) {
             msg("Заказ " . $oder['number'] . " не существует в CRM. Импорт заказа пропущен", "div", "alert alert-warning");
             continue;
         } else {
             $oder['id'] = $orderlist['orders'][0]['id'];
             $oder['totalSumm'] = $orderlist['orders'][0]['totalSumm'];
+            $oder['site'] = $orderlist['orders'][0]['site'];
         }
 
         if (DEBUG) {
@@ -182,7 +192,7 @@ if (empty($error)) {
             echo '<br>&nbsp;&nbsp;"customFields" => [';
             echo '<br>&nbsp;&nbsp;&nbsp;&nbsp;"dataoplat" => ' . ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : "null");
             echo '<br>&nbsp;&nbsp;]';
-            echo '<br>], id);';
+            echo '<br>], id, ' . $oder['site'] . ');';
             echo '<br></pre>';
         }
 
@@ -195,7 +205,7 @@ if (empty($error)) {
                 "customFields" => [
                     "dataoplat" => ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : null)
                 ]
-            ], 'id');
+            ], 'id', $oder['site']);
 
 
         // pre($orderedit);

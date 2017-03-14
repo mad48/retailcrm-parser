@@ -34,4 +34,32 @@ header('Content-Type: text/html; charset=utf-8');
 
 <div class="container">
     <div class="row">
-        <br><br>
+
+        <nav class="navbar navbar-default">
+            <!-- Бренд и переключатель, который вызывает меню на мобильных устройствах -->
+            <div class="navbar-header">
+                <!-- Кнопка с полосочками, которая открывает меню на мобильных устройствах -->
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-menu" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <!-- Бренд или логотип фирмы (обычно содержит ссылку на главную страницу) -->
+                <a href="#" class="navbar-brand">Парсер XLS</a>
+            </div>
+            <!-- Содержимое меню (коллекция навигационных ссылок, формы и др.) -->
+            <div class="collapse navbar-collapse" id="main-menu" >
+                <!-- Список ссылок, расположенных слева -->
+                <ul class="nav navbar-nav">
+                    <!--Элемент с классом active отображает ссылку подсвеченной -->
+                    <li class="active"><a href="#">Файл <span class="sr-only">(current)</span></a></li>
+<!--                    <li><a href="#">Статьи</a></li>
+                    <li><a href="#">Новости</a></li>-->
+                </ul>
+                <!-- Список ссылок, расположенный справа -->
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#" onclick="window.location.href='/'">Выйти</a></li>
+                </ul>
+            </div>
+        </nav>
