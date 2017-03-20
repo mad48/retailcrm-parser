@@ -2,7 +2,7 @@
 function echo_table($data, $error)
 {
     //pre($error);
-    echo '<br><br><table class="table table-hover">
+    echo '<br><br><div><table class="table table-hover">
         <thead>
             <tr>
                 <th>Номер</th>
@@ -51,7 +51,7 @@ function echo_table($data, $error)
         echo '</tr>';
     }
     echo '</tbody>
-</table>';
+</table></div>';
 
     echo '<script type="text/javascript">
     $(function () {

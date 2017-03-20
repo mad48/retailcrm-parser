@@ -108,8 +108,8 @@ function getPaymentTypes($client)
         $statuses[$status['name']] = $status['code'];
     }
 
-    //msg("Допустимые типы оплаты заказа");
-    //pre($types);
+    if(DEBUG) msg("Допустимые типы оплаты заказа");
+    if(DEBUG) pre($statuses);
 
     return $statuses;
 }

@@ -21,7 +21,9 @@ table tr td {
     padding: 5px
 }
 
-table .error{background: red}
+table .error {
+    background: red
+}
 
 .tooltip-inner {
     background-color: #1679d6;
@@ -29,10 +31,19 @@ table .error{background: red}
 }
 
 .form form {
-    width:300px;
-    height:300px;
-    position:absolute;
-    left:50%;
-    top:50%;
-    margin:-150px 0 0 -150px;
+    width: 300px;
+    height: 300px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: -150px 0 0 -150px;
+}
+
+.prel {
+    position: absolute;
+    top: 300px;
+    left: 50%;
+    margin-left: -64px;
+    width: 300px;
+    z-index: 3
 }

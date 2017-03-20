@@ -5,11 +5,11 @@ session_start();
 
 unset($_SESSION['auth']);
 unset($_SESSION['auth_error']);
+unset($_SESSION['debug']);
 
 if (isset($_SESSION['auth'])) {
     header("location:parser.php");
 }
-
 
 if (isset($_POST['login'])) {
 
