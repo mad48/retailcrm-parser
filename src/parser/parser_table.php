@@ -2,7 +2,8 @@
 function echo_table($data, $error)
 {
     //pre($error);
-    echo '<br><br><div><table class="table table-hover">
+    //echo "<br><br>";
+    echo '<div><table class="table table-hover">
         <thead>
             <tr>
                 <th>Номер</th>

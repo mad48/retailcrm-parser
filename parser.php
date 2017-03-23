@@ -57,7 +57,7 @@ $excelfilepath = "";
 } else {*/
 $excelfile = getExcelFile();
 if (!$excelfile) {
-    msg("Не выбран файл для обработки", "div", "alert alert-warning");
+    msg("Загрузите файл для обработки", "div", "alert alert-warning");
     die();
 } else {
     $excelfilepath = saveExcelFileCopy(__DIR__ . "/uploads/");
@@ -126,6 +126,14 @@ foreach ($data as $oder) {
 
     // проверка существования заказа
     $orderlist = $client->ordersList(['numbers' => [$oder['number']]]);
+
+    if (DEBUG) {
+        echo '<a  data-toggle="collapse" data-target="#obefore' . $oder['number'] . '" style="cursor: pointer">Заказ ' . $oder['number'] . ' до внесения изменений</a><br>';
+        echo '<div id="obefore' . $oder['number'] . '" class="collapse">';
+        pre($orderlist);
+        echo '</div>';
+
+    }
     if (empty($orderlist['orders'])) {
         $error[$oder['number']]['number'] = "Заказ " . $oder['number'] . " не существует в CRM";
     }
@@ -175,7 +183,7 @@ foreach ($data as $oder) {
 
 }//end foreach
 
-
+msg("Содержимое файла:", "h4", "alert alert-info");
 echo_table($data, $error);
 
 if (!empty($error)) {
@@ -205,6 +213,7 @@ if (empty($error)) {
         }
 //&nbsp;&nbsp;"paymentType" => ' . $paymentTypes[$oder['paymentType']] . ',
         $orderedit_str = '
+            number = ' . $oder['number'] . '
             $orderedit = $client->ordersEdit(
             [
             &nbsp;&nbsp;"id" => ' . $oder['id'] . ',
@@ -212,10 +221,11 @@ if (empty($error)) {
             &nbsp;&nbsp;"paymentStatus => ' . ($oder['oplacheno'] == $oder['totalSumm'] ? 'paid' : $paymentStatuses[$oder['paymentStatus']]) . ',
             &nbsp;&nbsp;"customFields" => [
             &nbsp;&nbsp;&nbsp;&nbsp;"paymenttype" => ' . $paymentTypes[$oder['paymentType']] . ',
+            &nbsp;&nbsp;&nbsp;&nbsp;"givemeparser" => ' . $oder['oplacheno'] . ',
             &nbsp;&nbsp;&nbsp;&nbsp;"dataoplat" => ' . ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : "null") . '
             &nbsp;&nbsp;]
-            ], id, ' . $oder['site'] . ');
-            ';
+            ], id, ' . $oder['site'] . ');';
+
 
 //"paymentType" => $paymentTypes[$oder['paymentType']],
         $orderedit = $client->ordersEdit(
@@ -225,12 +235,20 @@ if (empty($error)) {
                 "paymentStatus" => ($oder['oplacheno'] == $oder['totalSumm'] ? 'paid' : $paymentStatuses[$oder['paymentStatus']]), //Если сумма в xls файле совпадает с суммой заказа, то выставлять статус оплаты "Оплачен".
                 "customFields" => [
                     "paymenttype" => $paymentTypes[$oder['paymentType']],
+                    "givemeparser" => $oder['oplacheno'],
                     "dataoplat" => ($oder['dataoplat'] != "" ? date("Y-m-d", strtotime($oder['dataoplat'])) : "null")
                 ]
             ], 'id', $oder['site']);
 
 
-        // pre($orderedit);
+        if (DEBUG) {
+            $orderlist = $client->ordersList(['numbers' => [$oder['number']]]);
+            echo '<a  data-toggle="collapse" data-target="#oafter' . $oder['number'] . '" style="cursor: pointer">Заказ ' . $oder['number'] . ' после внесения изменений</a><br>';
+            echo '<div id="oafter' . $oder['number'] . '" class="collapse">';
+            echo "<pre>" . $orderedit_str . "</pre>";
+            pre($orderlist);
+            echo '</div>';
+        }
 
         if ($orderedit->isSuccessful()) {
             /*            if (DEBUG) {
@@ -242,11 +260,12 @@ if (empty($error)) {
             $error_import[$oder['number']]['id'] = $oder['id'];
             $error_import[$oder['number']]['code'] = $orderedit->getStatusCode();
             $error_import[$oder['number']]['msg'] = $orderedit->getErrorMsg();
+            $error_import[$oder['number']]['site'] = $oder['site'];
             if (isset($orderedit['errors'])) $error_import[$oder['number']]['errors'] = $orderedit['errors'];
 
             if (DEBUG) {
                 msg("Проблема с заказом number=" . $oder['number'], "h4", "alert alert-danger");
-                pre($orderedit_str);
+                //pre($orderedit_str);
                 pre($orderedit);
 
             }
@@ -258,13 +277,15 @@ if (empty($error)) {
 }
 
 if (!empty($error_import)) {
+    msg("Ошибки:", "h4", "alert alert-danger");
     foreach ($error_import as $error) {
-        msg("Ошибка импорта заказа. Заказ number=" . $error['number'] . " id=" . $error['id'] . " code=" . $error['code'] . " msg=" . $error['msg'] . (!empty($error['errors']) ? " error=" . print_r($error['errors'], true) : ""), "h4", "alert alert-danger");
-        logger("Ошибка импорта заказа. Заказ number=" . $error['number'] . " id=" . $error['id'] . " code=" . $error['code'] . " msg=" . $error['msg'] . (!empty($error['errors']) ? " error=" . print_r($error['errors'], true) : ""));
+        msg("Ошибка обновления заказа. Заказ number=" . $error['number'] . " id=" . $error['id'] . " site=" . $error['site'] . " code=" . $error['code'] . " msg=" . $error['msg'] . (!empty($error['errors']) ? " error=" . print_r($error['errors'], true) : ""), "h4", "alert alert-danger");
+        logger("Ошибка обновления заказа. Заказ number=" . $error['number'] . " id=" . $error['id'] . " site=" . $error['site'] . " code=" . $error['code'] . " msg=" . $error['msg'] . (!empty($error['errors']) ? " error=" . print_r($error['errors'], true) : ""));
     }
 } else {
     msg("Импорт успешно завершен", "h4", "alert alert-success");
     logger("Импорт успешно завершен");
 }
+
 
 ?>

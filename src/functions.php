@@ -74,8 +74,8 @@ function getStatuses($client)
         $statuses[$status['name']] = $status['code'];
     }
 
-    //msg("Допустимые статусы заказа");
-    //pre($statuses);
+    //if(DEBUG) msg("Допустимые статусы заказа (statuses)");
+    //if(DEBUG) pre($statuses);
 
     return $statuses;
 }
@@ -91,8 +91,8 @@ function getPaymentStatuses($client)
         $statuses[$status['name']] = $status['code'];
     }
 
-    //msg("Допустимые статусы оплаты заказа");
-    //pre($statuses);
+    //if(DEBUG) msg("Допустимые статусы оплаты заказа (paymentStatuses)");
+    //if(DEBUG) pre($statuses);
 
     return $statuses;
 }
@@ -108,8 +108,8 @@ function getPaymentTypes($client)
         $statuses[$status['name']] = $status['code'];
     }
 
-    if(DEBUG) msg("Допустимые типы оплаты заказа");
-    if(DEBUG) pre($statuses);
+    //if(DEBUG) msg("Допустимые типы оплаты заказа (paymentTypes)");
+    //if(DEBUG) pre($statuses);
 
     return $statuses;
 }

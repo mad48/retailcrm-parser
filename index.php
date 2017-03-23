@@ -46,7 +46,7 @@ if (isset($_POST['login'])) {
     <div class="row">
         <div class="form">
 
-            <form class="form-horizontal" role="form" action="" method="POST">
+            <form  id="authform" class="form-horizontal" role="form" action="" method="POST">
                 <h3 style="text-align: right">Парсер XLS</h3>
                 <div class="form-group">
                     <div class="form-group">
@@ -79,7 +79,7 @@ if (isset($_POST['login'])) {
             <? if (isset($_SESSION['auth_error'])) echo '<div class="alert alert-danger">Логин или пароль указан не верно</div>'; ?>
 
         </div><!-- form  -->
-
+        <script>document.forms.authform.login.focus();</script>
     </div>
 </div>
 </body>
