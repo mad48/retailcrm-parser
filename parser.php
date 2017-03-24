@@ -254,7 +254,7 @@ if (empty($error)) {
             /*            if (DEBUG) {
                             msg("Заказ  number=" . $oder['number'] . " успешно обновлен", "div");
                         }*/
-            logger("Заказ  number=" . $oder['number'] . " успешно обновлен");
+            logger("Заказ number=" . $oder['number'] . " успешно обновлен");
         } else {
             $error_import[$oder['number']]['number'] = $oder['number'];
             $error_import[$oder['number']]['id'] = $oder['id'];
@@ -265,6 +265,7 @@ if (empty($error)) {
 
             if (DEBUG) {
                 msg("Проблема с заказом number=" . $oder['number'], "h4", "alert alert-danger");
+                logger("Проблема с заказом number=" . $oder['number']);
                 //pre($orderedit_str);
                 pre($orderedit);
 

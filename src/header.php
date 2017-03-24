@@ -6,7 +6,7 @@ header('Content-Type: text/html; charset=utf-8');
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link href="css/favicon.ico" rel="icon" type="image/x-icon"/>
+    <link href="images/favicon.ico" rel="icon" type="image/x-icon"/>
     <title><?= basename($_SERVER['SCRIPT_NAME'], ".php") ?> - retailCRM</title>
 
     <!--<script type='text/javascript' src='http://code.jquery.com/jquery-3.1.1.js'></script>-->
@@ -33,7 +33,7 @@ header('Content-Type: text/html; charset=utf-8');
 </script>
 
 
-<div class="prel"><img  src="../css/103.gif"/></div>
+<div class="prel"><img  src="../images/preloader.gif"/></div>
 
 
 <script>
