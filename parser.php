@@ -1,5 +1,7 @@
 <?php
+set_time_limit(100);
 session_start();
+
 if (!isset($_SESSION['auth'])) header("location: index.php");
 
 /**
@@ -48,7 +50,7 @@ require_once 'src/parser/parser_form.php';
 require_once 'src/parser/parser_table.php';
 
 logger("");
-logger("Вызов скрипта parser");
+logger("Вход");
 
 $excelfilepath = "";
 
@@ -262,10 +264,11 @@ if (empty($error)) {
             $error_import[$oder['number']]['msg'] = $orderedit->getErrorMsg();
             $error_import[$oder['number']]['site'] = $oder['site'];
             if (isset($orderedit['errors'])) $error_import[$oder['number']]['errors'] = $orderedit['errors'];
+            logger("Ошибка обновления заказа. Заказ number=" . $oder['number'] . " id=" . $oder['id'] . " site=" . $oder['site'] . " code=" . $orderedit->getStatusCode() . " msg=" . $orderedit->getErrorMsg() . (!empty($orderedit['errors']) ? " error=" . print_r($orderedit['errors'], true) : ""));
 
             if (DEBUG) {
                 msg("Проблема с заказом number=" . $oder['number'], "h4", "alert alert-danger");
-                logger("Проблема с заказом number=" . $oder['number']);
+                //logger("Проблема с заказом number=" . $oder['number']);
                 //pre($orderedit_str);
                 pre($orderedit);
 
